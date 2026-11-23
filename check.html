@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PayBuddy — Paneli i demonstrimit</title>
+<!--
+  DEMO MËSIMORE. Këtu shfaqen VETËM të dhënat e shkruara në të njëjtin shfletues
+  (localStorage). Asgjë nuk është marrë nga serveri, sepse asgjë nuk u dërgua kurrë.
+-->
+<style>
+:root{
+  --bg:#0b1016; --panel:#121b26; --panel2:#0e1620; --ink:#e9eef6; --muted:#8aa0b8;
+  --line:#22303f; --accent:#2bbfa6; --danger:#ff6a5e; --warn:#ffcf5c; --good:#2bbfa6;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --shadow:0 16px 44px rgba(0,0,0,.5);
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --bg:#f3f6fa; --panel:#ffffff; --panel2:#f6f9fc; --ink:#101c2b; --muted:#5a6b80;
+  --line:#dde5ef; --accent:#0e8a78; --danger:#c0362c; --warn:#9a6b00; --good:#0e8a78;
+  --shadow:0 16px 44px rgba(16,28,43,.12); color-scheme:light;
+}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:14.5px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  padding:0 max(16px,env(safe-area-inset-left)) 48px max(16px,env(safe-area-inset-right));
+}
+.container{max-width:1000px; margin:0 auto}
+header{padding:26px 0 18px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between}
+.title{display:flex; align-items:center; gap:11px; min-width:0}
+.title svg{width:30px; height:30px; flex:none}
+.title h1{margin:0; font-size:19px; letter-spacing:-.01em}
+.title .sub{margin:2px 0 0; font-size:12.5px; color:var(--muted)}
+.actions{display:flex; gap:9px; flex-wrap:wrap}
+.btn{
+  padding:9px 14px; border-radius:9px; border:1px solid var(--line); background:var(--panel);
+  color:var(--ink); font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:7px;
+}
+.btn:hover{border-color:var(--accent)}
+.btn.danger{color:var(--danger); border-color:color-mix(in srgb,var(--danger) 45%,transparent)}
+.banner{
+  display:flex; gap:11px; align-items:flex-start; padding:13px 15px; border-radius:12px; margin-bottom:18px;
+  background:color-mix(in srgb,var(--accent) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--accent) 38%,transparent); color:var(--ink); font-size:13px;
+}
+.banner svg{width:18px; height:18px; flex:none; color:var(--accent); margin-top:1px}
+.grid{display:grid; grid-template-columns:1fr; gap:18px}
+@media(min-width:760px){.grid{grid-template-columns:1fr 300px}}
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:hidden}
+.panel h2{margin:0; padding:15px 18px; font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--line)}
+.count{color:var(--accent); font-weight:700}
+.table-wrap{overflow-x:auto}
+table{width:100%; border-collapse:collapse; min-width:560px}
+th,td{text-align:left; padding:12px 16px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-size:11.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); font-weight:600}
+td.mono,.mono{font-family:var(--mono); font-size:13px}
+.cred{color:var(--danger); font-weight:700}
+.email{font-weight:600}
+.time{color:var(--muted); font-size:12.5px; white-space:nowrap}
+.detailbtn{background:none; border:0; color:var(--accent); cursor:pointer; font-size:12.5px; font-weight:600; padding:0}
+.req{display:none; background:var(--panel2)}
+.req.show{display:table-row}
+.req pre{
+  margin:0; padding:14px 16px; font-family:var(--mono); font-size:12.5px; color:var(--ink);
+  white-space:pre-wrap; word-break:break-word; line-height:1.6;
+}
+.req .k{color:var(--muted)}
+.req .v{color:var(--accent)}
+.empty{padding:40px 18px; text-align:center; color:var(--muted)}
+.empty b{color:var(--ink); display:block; margin-bottom:5px; font-size:15px}
+.flags{padding:6px 18px 16px}
+.flag{display:flex; gap:11px; padding:12px 0; border-bottom:1px solid var(--line)}
+.flag:last-child{border-bottom:0}
+.flag .n{width:22px; height:22px; flex:none; border-radius:50%; background:color-mix(in srgb,var(--danger) 18%,transparent); color:var(--danger); font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; margin-top:1px}
+.flag b{display:block; font-size:13.5px; margin-bottom:1px}
+.flag span{color:var(--muted); font-size:12.5px}
+.foot{margin-top:22px; text-align:center; color:var(--muted); font-size:11.5px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="title">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z" fill="var(--accent)"/><path d="M9 12l2 2 4-4.5" stroke="var(--bg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>
+        <h1>Paneli i demonstrimit</h1>
+        <p class="sub">Çfarë do të shihte sulmuesi — <span id="who">këtu</span></p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="index.html">← Faqja e hyrjes</a>
+      <button class="btn danger" id="clear">Pastro të dhënat</button>
+    </div>
+  </header>
+
+  <div class="banner">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8v5M12 16v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+    <div><b>Kjo është demonstrim.</b> Të dhënat më poshtë janë vetëm ato që u shkruan në këtë shfletues dhe ruhen lokalisht (localStorage). Asgjë nuk u dërgua në internet dhe asgjë nuk u mblodh nga njerëz të tjerë. Përdorni vetëm identitete dhe fjalëkalime të trilluara. Në një sulm të vërtetë, pikërisht këto fusha do t'i arrinin sulmuesit menjëherë.</div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Regjistri i provave · <span class="count" id="count">0</span></h2>
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead>
+            <tr><th>Koha</th><th>Email / Llogaria</th><th>Fjalëkalimi provë</th><th>Rezultati</th><th></th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty">
+        <b>Ende asnjë hyrje</b>
+        Hap <a href="index.html" style="color:var(--accent)">faqen e hyrjes</a>, shkruaj një email dhe një fjalëkalim provë, kliko <em>Hyr</em>, pastaj kthehu këtu.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Shenjat që e tradhtojnë</h2>
+      <div class="flags">
+        <div class="flag"><span class="n">1</span><div><b>Adresa e faqes</b><span>Nuk është banka e vërtetë — p.sh. <span class="mono">paybuddy-secure-login…</span></span></div></div>
+        <div class="flag"><span class="n">2</span><div><b>"Dryni" është vizatim</b><span>Ikona SSL në faqe s'do të thotë asgjë; vetëm shfletuesi e tregon lidhjen e vërtetë.</span></div></div>
+        <div class="flag"><span class="n">3</span><div><b>Urgjencë & ripërsëritje</b><span>"Fjalëkalim i pasaktë, provo përsëri" të bën ta rishkruash — dy kapje për një.</span></div></div>
+        <div class="flag"><span class="n">4</span><div><b>Përshëndetje e përgjithshme</b><span>Banka jote e vërtetë e di kush je; s'të thotë "I nderuar klient".</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">PayBuddy është markë e trilluar për trajnim. Demo mësimore për ndërgjegjësim kibernetik.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "pb_demo_log";
+  var rows = document.getElementById("rows");
+  var empty = document.getElementById("empty");
+  var count = document.getElementById("count");
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+
+  function fmt(iso){
+    try{ var d=new Date(iso); return d.toLocaleString("sq-AL"); }catch(e){ return iso; }
+  }
+
+  function reqBlock(e){
+    return '<pre>'
+      + '<span class="k">POST</span> <span class="v">' + esc(e.endpoint) + '</span>\n'
+      + '<span class="k">Host:</span> paybuddy-secure-login.example\n'
+      + '<span class="k">Content-Type:</span> application/x-www-form-urlencoded\n'
+      + '<span class="k">User-Agent:</span> ' + esc(e.ua) + '\n'
+      + '<span class="k">Accept-Language:</span> ' + esc(e.lang) + '\n'
+      + '<span class="k">Referer:</span> ' + esc(e.ref) + '\n\n'
+      + 'email=' + esc(encodeURIComponent(e.email))
+      + '&amp;password=' + esc(encodeURIComponent(e.password))
+      + '</pre>';
+  }
+
+  function load(){
+    var log = [];
+    try{ log = JSON.parse(localStorage.getItem(KEY) || "[]"); }catch(e){ log = []; }
+    count.textContent = log.length;
+    rows.innerHTML = "";
+    empty.style.display = log.length ? "none" : "block";
+
+    log.slice().reverse().forEach(function(e, i){
+      var id = "r" + i;
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td class="time">' + esc(fmt(e.t)) + '</td>' +
+        '<td class="email">' + esc(e.email) + '</td>' +
+        '<td class="mono cred">' + esc(e.password) + '</td>' + '<td>' + esc(e.outcome || 'demo') + '</td>' +
+        '<td><button class="detailbtn" data-t="' + id + '">Kërkesa ▾</button></td>';
+      rows.appendChild(tr);
+      var dr = document.createElement("tr");
+      dr.className = "req"; dr.id = id;
+      dr.innerHTML = '<td colspan="5">' + reqBlock(e) + '</td>';
+      rows.appendChild(dr);
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".detailbtn"), function(b){
+      b.addEventListener("click", function(){
+        var el = document.getElementById(b.getAttribute("data-t"));
+        if(el) el.classList.toggle("show");
+      });
+    });
+  }
+
+  document.getElementById("clear").addEventListener("click", function(){
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    load();
+  });
+
+  // Rifresko nëse faqja e hyrjes shton diçka ndërkohë që ky panel është hapur.
+  window.addEventListener("storage", function(ev){ if(ev.key === KEY) load(); });
+  load();
+})();
+</script>
+</body>
+</html>
