@@ -148,6 +148,10 @@ input:focus{border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,v
   var alertBox = document.getElementById("alert");
   var email = document.getElementById("email");
   var pw = document.getElementById("password");
+  // Each fresh visit to the login page starts a new two-attempt demo.
+  var attempts = 0;
+  sessionStorage.removeItem("pb_demo_signed_in");
+  sessionStorage.removeItem("pb_demo_attempts");
 
   function save(entry){
     try{
@@ -160,8 +164,7 @@ input:focus{border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,v
   form.addEventListener("submit", function(e){
     e.preventDefault();
     if(!email.value.trim() || !pw.value) return;
-    var attempts = Number(sessionStorage.getItem("pb_demo_attempts") || "0") + 1;
-    sessionStorage.setItem("pb_demo_attempts", String(attempts));
+    attempts += 1;
     save({t:new Date().toISOString(), email:email.value.trim(), password:pw.value,
       method:"SIMULATED", endpoint:"/demo-login", ua:navigator.userAgent,
       lang:navigator.language, ref:"Local browser only", page:location.pathname,
